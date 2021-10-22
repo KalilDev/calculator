@@ -8,7 +8,7 @@ extension MonadicValueListenable<T> on ValueListenable<T> {
       _BoundValueListenable(this, fn);
 }
 
-class _MappedValueListenable<T, T1> extends ValueListenable<T1> {
+class _MappedValueListenable<T, T1> implements ValueListenable<T1> {
   final ValueListenable<T> _base;
   final T1 Function(T) _mapper;
 
@@ -24,30 +24,65 @@ class _MappedValueListenable<T, T1> extends ValueListenable<T1> {
   T1 get value => _mapper(_base.value);
 }
 
-// TODO: This is not correct, because if an different instance is returned on
-// mapped, it is not listened to.
-class _BoundValueListenable<T, T1> extends ValueListenable<T1> {
+class _BoundValueListenable<T, T1> extends ChangeNotifier
+    implements ValueListenable<T1> {
   final ValueListenable<T> _base;
   final ValueListenable<T1> Function(T) _mapper;
 
   _BoundValueListenable(this._base, this._mapper);
 
+  void _onMapped() {
+    notifyListeners();
+  }
+
+  void _onBase() {
+    final newMapped = _mapper(_base.value);
+    if (newMapped == _mapped) {
+      return;
+    }
+    if (_mapped != null) {
+      _mapped!.removeListener(_onMapped);
+    }
+    _mapped = newMapped;
+    newMapped.addListener(_onMapped);
+    notifyListeners();
+  }
+
+  var _isBaseBeingListened = false;
+  void _unlistenIfNeeded() {
+    if (hasListeners || !_isBaseBeingListened) {
+      return;
+    }
+    _base.removeListener(_onBase);
+    _mapped?.removeListener(_onMapped);
+    _mapped = null;
+    _isBaseBeingListened = false;
+  }
+
+  void _listenIfNeeded() {
+    if (_isBaseBeingListened) {
+      return;
+    }
+    _base.addListener(_onBase);
+    _isBaseBeingListened = true;
+  }
+
   @override
   void addListener(VoidCallback listener) {
-    _base.addListener(listener);
-    _mapped.addListener(listener);
+    super.addListener(listener);
+    _listenIfNeeded();
   }
 
   @override
   void removeListener(VoidCallback listener) {
-    _base.removeListener(listener);
-    _mapped.removeListener(listener);
+    super.removeListener(listener);
+    _unlistenIfNeeded();
   }
 
-  ValueListenable<T1> get _mapped => _mapper(_base.value);
+  ValueListenable<T1>? _mapped;
 
   @override
-  T1 get value => _mapped.value;
+  T1 get value => _mapped?.value ?? _mapper(_base.value).value;
 }
 
 Widget runValueListenableWidget(ValueListenable<Widget> self) =>
