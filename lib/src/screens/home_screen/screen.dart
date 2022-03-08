@@ -8,6 +8,7 @@ import 'package:calculator/src/widgets/history.dart';
 import 'package:calculator/src/widgets/keypad.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:value_notifier/value_notifier.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({Key? key}) : super(key: key);
@@ -21,11 +22,14 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
       AnimationController(vsync: this);
   late final AnimationController secondLevelController =
       AnimationController(vsync: this);
-  late final CalcController controller = CalcController(
-      CalcUiController()
-        ..firstLevelScrollAnimation = firstLevelController
-        ..secondLevelScrollAnimation = secondLevelController,
-      CalcLogicController());
+  late final CalcController controller =
+      ControllerBase.create(() => CalcController(
+          ControllerBase.create(
+            () => CalcUiController()
+              ..firstLevelScrollAnimation = firstLevelController
+              ..secondLevelScrollAnimation = secondLevelController,
+          ),
+          ControllerBase.create(() => CalcLogicController())));
   late final Animation<double> keypadHeight = firstLevelController;
 
   @override
@@ -151,8 +155,8 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
         deltaHeight,
     ]);
 
-    return InheritedCalcController(
-      controller: controller,
+    return InheritedController(
+      handle: controller.handle,
       child: CustomScrollView(
         reverse: true,
         controller: scrollController,

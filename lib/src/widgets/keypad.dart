@@ -1,11 +1,11 @@
 import 'package:calculator/src/controllers/calc.dart';
 import 'package:calculator/src/layout.dart';
-import 'package:calculator/src/other/monadic_value_listenable.dart';
 import 'package:calculator/src/widgets/buttons.dart';
 import 'package:flutter/material.dart';
 import 'package:material_you/material_you.dart';
+import 'package:utils/curry.dart';
 import 'dart:math' as math;
-
+import 'package:value_notifier/value_notifier.dart';
 import 'keypad/button_model_widget.dart';
 import 'keypad/viewmodel.dart';
 
@@ -103,53 +103,45 @@ class _KeypadState extends State<Keypad> with SingleTickerProviderStateMixin {
     );
   }
 
+  static Widget _buildDigitsAndSpecials(
+    BuildContext context,
+    double expansionPadding,
+    double firstLevelPaddingFactor,
+    double maximumPadding,
+    double expansionGutter,
+    double firstLevelScrollGutter,
+  ) =>
+      _DigitsAndSpecialsKeypad(
+        keypadPadding: (expansionPadding + firstLevelPaddingFactor)
+            .clamp(
+                CalculatorLayout.of(context).minKeypadPadding, maximumPadding)
+            .toDouble(),
+        gutter: math.min(expansionGutter, firstLevelScrollGutter),
+      );
+
   Widget _keypad(
     BuildContext context,
     Tween<double> gutterTween,
     Tween<double> maxKeypadPaddingTween,
   ) {
-    final layout = CalculatorLayout.of(context);
-    final firstLevelScrollPadding = _firstLevelPaddingFactorTween
-        .animate(CalcController.of(context).ui.firstLevelScrollAnimation);
-    final firstLevelScrollGutter = gutterTween
-        .animate(CalcController.of(context).ui.firstLevelScrollAnimation);
+    final controller = CalcController.of(context).ui;
+    final scrollAnim = controller.firstLevelScrollAnimation;
+
+    final firstLevelScrollPadding =
+        _firstLevelPaddingFactorTween.animate(scrollAnim);
+    final firstLevelScrollGutter = gutterTween.animate(scrollAnim);
     final expansionPadding = _keypadPaddingTween.animate(_expansion);
     final expansionGutter = gutterTween.animate(_expansion);
-    final maximumPadding = maxKeypadPaddingTween
-        .animate(CalcController.of(context).ui.firstLevelScrollAnimation);
+    final maximumPadding = maxKeypadPaddingTween.animate(scrollAnim);
 
-    Widget buildWidget(
-      double expansionPadding,
-      double firstLevelPaddingFactor,
-      double maximumPadding,
-      double expansionGutter,
-      double firstLevelScrollGutter,
-    ) =>
-        _DigitsAndSpecialsKeypad(
-          keypadPadding: (expansionPadding + firstLevelPaddingFactor)
-              .clamp(layout.minKeypadPadding, maximumPadding)
-              .toDouble(),
-          gutter: math.min(expansionGutter, firstLevelScrollGutter),
-        );
-
-    return runValueListenableWidget(
-      firstLevelScrollPadding.bind(
-        (firstLevelScrollPadding) => firstLevelScrollGutter.bind(
-          (firstLevelScrollGutter) => expansionPadding.bind(
-            (expansionPadding) => expansionGutter.bind(
-              (expansionGutter) => maximumPadding.map(
-                (maximumPadding) => buildWidget(
-                    expansionPadding,
-                    firstLevelScrollPadding,
-                    maximumPadding,
-                    expansionGutter,
-                    firstLevelScrollGutter),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
+    return (_buildDigitsAndSpecials.curry >>
+            context.asValueListenable >>
+            expansionPadding >>
+            firstLevelScrollPadding >>
+            maximumPadding >>
+            expansionGutter >>
+            firstLevelScrollGutter)
+        .build();
   }
 }
 
