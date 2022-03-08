@@ -13,7 +13,8 @@ dependencies:
 
 
   cupertino_icons: ^1.0.2
-  material_you:
+  material_you: ^0.0.27
+  material_widgets: ^0.4.0-preview.6
   hive: ^2.0.0
   math_expressions:
   path_provider:

@@ -178,7 +178,7 @@ class _AdditionalKeypad extends StatelessWidget {
             style: ButtonStyle(
               fixedSize: MaterialStateProperty.all(const Size.square(36)),
               foregroundColor: MaterialStateProperty.all(
-                context.materialYouColors.accent2.shade200,
+                context.colorScheme.onSurfaceVariant,
               ),
               backgroundColor: MaterialStateProperty.all(
                 ButtonModelWidget.neutralBg(context),

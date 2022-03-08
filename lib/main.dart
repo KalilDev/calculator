@@ -2,6 +2,7 @@ import 'package:calculator/src/controllers/calc_logic.dart';
 import 'package:calculator/src/screens/home_screen/screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:material_widgets/material_widgets.dart';
 import 'package:material_you/material_you.dart';
 import 'package:hive/hive.dart';
 import 'package:path_provider/path_provider.dart' as path_provider;
@@ -21,24 +22,7 @@ void main() async {
   );
 }
 
-TextTheme robotoLightTextTheme([TextTheme? textTheme]) {
-  textTheme ??= ThemeData.light().textTheme;
-  return TextTheme(
-    headline1: textTheme.headline1!.copyWith(fontWeight: FontWeight.w400),
-    headline2: textTheme.headline2!.copyWith(fontWeight: FontWeight.w400),
-    headline3: textTheme.headline3!.copyWith(fontWeight: FontWeight.w400),
-    headline4: textTheme.headline4!.copyWith(fontWeight: FontWeight.w400),
-    headline5: textTheme.headline5!.copyWith(fontWeight: FontWeight.w400),
-    headline6: textTheme.headline6!.copyWith(fontWeight: FontWeight.w400),
-    subtitle1: textTheme.subtitle1!.copyWith(fontWeight: FontWeight.w400),
-    subtitle2: textTheme.subtitle2!.copyWith(fontWeight: FontWeight.w400),
-    bodyText1: textTheme.bodyText1!.copyWith(fontWeight: FontWeight.w400),
-    bodyText2: textTheme.bodyText2!.copyWith(fontWeight: FontWeight.w400),
-    caption: textTheme.caption!.copyWith(fontWeight: FontWeight.w400),
-    button: textTheme.button!.copyWith(fontWeight: FontWeight.w400),
-    overline: textTheme.overline!.copyWith(fontWeight: FontWeight.w400),
-  );
-}
+final GlobalKey<NavigatorState> navKey = GlobalKey();
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
@@ -46,37 +30,38 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    final textTheme = robotoLightTextTheme(Typography.englishLike2018);
-    final themes = themesFrom(
-      context.palette,
-      lightTextTheme: textTheme,
-      darkTextTheme: textTheme,
-    );
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: themes.lightTheme,
-      darkTheme: themes.darkTheme,
-      debugShowCheckedModeBanner: false,
-      home: InheritedMaterialYouColors(
-        colors: themes.materialYouColors,
-        child: Scaffold(
-          body: Builder(
-            builder: (context) => AnnotatedRegion<SystemUiOverlayStyle>(
-              value: SystemUiOverlayStyle(
-                statusBarColor: AppBarTheme.of(context).backgroundColor!,
+    return MD3Themes(
+        builder: (context, light, dark) => MaterialApp(
+              title: 'Flutter Demo',
+              theme: light,
+              darkTheme: dark,
+              debugShowCheckedModeBanner: false,
+              builder: (context, home) => DesktopOverlays(
+                child: home!,
+                navigatorKey: navKey,
               ),
-              child: InheritedCalculatorLayout(
-                layout: CalculatorLayout.fromViewSize(
-                  MediaQuery.of(context).size,
-                ),
-                child: const SafeArea(
-                  child: MainScreen(),
+              home: MD3AdaptativeScaffold(
+                body: MD3ScaffoldBody.noMargin(
+                  child: Builder(
+                    builder: (context) => AnnotatedRegion<SystemUiOverlayStyle>(
+                      value: SystemUiOverlayStyle(
+                        statusBarColor: context.elevation.level2.overlaidColor(
+                          context.colorScheme.surface,
+                          context.colorScheme.primary,
+                        ),
+                      ),
+                      child: InheritedCalculatorLayout(
+                        layout: CalculatorLayout.fromViewSize(
+                          MediaQuery.of(context).size,
+                        ),
+                        child: const SafeArea(
+                          child: MainScreen(),
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
               ),
-            ),
-          ),
-        ),
-      ),
-    );
+            ));
   }
 }

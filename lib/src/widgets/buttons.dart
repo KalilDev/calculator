@@ -2,6 +2,7 @@
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:material_widgets/material_widgets.dart';
 
 class _CalcButtonChildWrapper extends StatelessWidget {
   final Widget child;
@@ -22,7 +23,7 @@ class _CalcButtonChildWrapper extends StatelessWidget {
   }
 }
 
-class CalcButton extends ButtonStyleButton {
+class CalcButton extends FilledButton {
   CalcButton({
     Key? key,
     required VoidCallback? onPressed,
@@ -67,59 +68,6 @@ class CalcButton extends ButtonStyleButton {
               : MaterialStateColor.resolveWith((states) => foregroundColor),
         ),
       );
-  static ButtonStyle styleFrom({
-    Color? primary,
-    Color? onSurface,
-    Color? backgroundColor,
-    Color? shadowColor,
-    double? elevation,
-    TextStyle? textStyle,
-    EdgeInsetsGeometry? padding,
-    BorderSide? side,
-    OutlinedBorder? shape,
-    MouseCursor? enabledMouseCursor,
-    MouseCursor? disabledMouseCursor,
-    VisualDensity? visualDensity,
-    MaterialTapTargetSize? tapTargetSize,
-    Duration? animationDuration,
-    bool? enableFeedback,
-    AlignmentGeometry? alignment,
-    InteractiveInkFeatureFactory? splashFactory,
-  }) {
-    final MaterialStateProperty<Color?>? foregroundColor =
-        (onSurface == null && primary == null)
-            ? null
-            : _TextButtonDefaultForeground(primary, onSurface);
-    final MaterialStateProperty<Color?>? overlayColor =
-        (primary == null) ? null : _TextButtonDefaultOverlay(primary);
-    final MaterialStateProperty<MouseCursor>? mouseCursor =
-        (enabledMouseCursor == null && disabledMouseCursor == null)
-            ? null
-            : _TextButtonDefaultMouseCursor(
-                enabledMouseCursor!, disabledMouseCursor!);
-
-    return ButtonStyle(
-      textStyle: ButtonStyleButton.allOrNull<TextStyle>(textStyle),
-      backgroundColor: ButtonStyleButton.allOrNull<Color>(backgroundColor),
-      foregroundColor: foregroundColor,
-      overlayColor: overlayColor,
-      shadowColor: ButtonStyleButton.allOrNull<Color>(shadowColor),
-      elevation: ButtonStyleButton.allOrNull<double>(elevation),
-      padding: ButtonStyleButton.allOrNull<EdgeInsetsGeometry>(padding),
-      side: ButtonStyleButton.allOrNull<BorderSide>(side),
-      shape: ButtonStyleButton.allOrNull<OutlinedBorder>(shape) ??
-          _CalcButtonDefaultShape(),
-      minimumSize: MaterialStateProperty.all(Size.zero),
-      maximumSize: MaterialStateProperty.all(Size.infinite),
-      mouseCursor: mouseCursor,
-      visualDensity: visualDensity,
-      tapTargetSize: tapTargetSize,
-      animationDuration: animationDuration,
-      enableFeedback: enableFeedback,
-      alignment: alignment,
-      splashFactory: splashFactory,
-    );
-  }
 
   @override
   ButtonStyle defaultStyleOf(BuildContext context) {
@@ -136,23 +84,13 @@ class CalcButton extends ButtonStyleButton {
       MediaQuery.maybeOf(context)?.textScaleFactor ?? 1,
     );
 
-    return styleFrom(
-      primary: colorScheme.primary,
-      onSurface: colorScheme.onSurface,
-      backgroundColor: Colors.transparent,
-      shadowColor: theme.shadowColor,
-      elevation: 0,
-      textStyle: theme.textTheme.button,
-      padding: scaledPadding,
-      enabledMouseCursor: SystemMouseCursors.click,
-      disabledMouseCursor: SystemMouseCursors.forbidden,
-      visualDensity: theme.visualDensity,
-      tapTargetSize: theme.materialTapTargetSize,
-      animationDuration: kThemeChangeDuration,
-      enableFeedback: true,
-      alignment: Alignment.center,
-      splashFactory: Theme.of(context).splashFactory,
-    );
+    return super.defaultStyleOf(context).copyWith(
+          padding: MaterialStateProperty.all(scaledPadding),
+          shape: _CalcButtonDefaultShape(),
+          fixedSize: MaterialStateProperty.all(Size.infinite),
+          maximumSize: MaterialStateProperty.all(Size.infinite),
+          minimumSize: MaterialStateProperty.all(Size.zero),
+        );
   }
 
   @override
@@ -227,65 +165,5 @@ class _CalcButtonDefaultShape extends MaterialStateProperty<OutlinedBorder> {
       return RoundedRectangleBorder(borderRadius: BorderRadius.circular(16));
     }
     return const StadiumBorder();
-  }
-}
-
-@immutable
-class _TextButtonDefaultForeground extends MaterialStateProperty<Color?> {
-  _TextButtonDefaultForeground(this.primary, this.onSurface);
-
-  final Color? primary;
-  final Color? onSurface;
-
-  @override
-  Color? resolve(Set<MaterialState> states) {
-    if (states.contains(MaterialState.disabled)) {
-      return onSurface?.withOpacity(0.38);
-    }
-    return primary;
-  }
-
-  @override
-  String toString() {
-    return '{disabled: ${onSurface?.withOpacity(0.38)}, otherwise: $primary}';
-  }
-}
-
-@immutable
-class _TextButtonDefaultOverlay extends MaterialStateProperty<Color?> {
-  _TextButtonDefaultOverlay(this.primary);
-
-  final Color primary;
-
-  @override
-  Color? resolve(Set<MaterialState> states) {
-    if (states.contains(MaterialState.hovered)) {
-      return primary.withOpacity(0.04);
-    }
-    if (states.contains(MaterialState.focused) ||
-        states.contains(MaterialState.pressed)) {
-      return primary.withOpacity(0.12);
-    }
-    return null;
-  }
-
-  @override
-  String toString() {
-    return '{hovered: ${primary.withOpacity(0.04)}, focused,pressed: ${primary.withOpacity(0.12)}, otherwise: null}';
-  }
-}
-
-@immutable
-class _TextButtonDefaultMouseCursor extends MaterialStateProperty<MouseCursor>
-    with Diagnosticable {
-  _TextButtonDefaultMouseCursor(this.enabledCursor, this.disabledCursor);
-
-  final MouseCursor enabledCursor;
-  final MouseCursor disabledCursor;
-
-  @override
-  MouseCursor resolve(Set<MaterialState> states) {
-    if (states.contains(MaterialState.disabled)) return disabledCursor;
-    return enabledCursor;
   }
 }

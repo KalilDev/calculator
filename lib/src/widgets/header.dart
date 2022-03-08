@@ -39,7 +39,6 @@ class Header extends StatelessWidget {
   Widget build(BuildContext context) {
     final layout = CalculatorLayout.of(context);
     final margin = layout.margin;
-    final accent = context.materialYouColors.accent2;
     final isTiny = layout.type == CalculatorLayoutType.tiny;
     return Material(
       shape: RoundedRectangleBorder(
@@ -47,7 +46,10 @@ class Header extends StatelessWidget {
           bottom: Radius.circular(margin),
         ),
       ),
-      color: context.isDark ? accent.shade700 : accent.shade100,
+      color: context.elevation.level2.overlaidColor(
+        context.colorScheme.surface,
+        context.colorScheme.primary,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -89,10 +91,9 @@ class Header extends StatelessWidget {
             height: 4,
             child: DecoratedBox(
               decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(2),
-                  color: context.isDark
-                      ? context.materialYouColors.neutral1.shade50
-                      : context.materialYouColors.neutral1.shade700),
+                borderRadius: BorderRadius.circular(2),
+                color: context.colorScheme.onSurfaceVariant,
+              ),
             ),
           ),
         ),

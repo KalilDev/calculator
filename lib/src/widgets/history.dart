@@ -4,6 +4,7 @@ import 'package:calculator/src/controllers/calc.dart';
 import 'package:calculator/src/layout.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:material_widgets/material_widgets.dart';
 import 'package:material_you/material_you.dart';
 import 'package:animations/animations.dart';
 import '../model.dart';
@@ -15,7 +16,8 @@ class History extends StatelessWidget {
     final controller = CalcController.of(context);
     return _appBarTransition(
       context,
-      AppBar(
+      MD3CenterAlignedAppBar(
+        isElevated: true,
         leading: IconButton(
           onPressed: controller.ui.scrollBack,
           icon: IconTheme.merge(
@@ -23,50 +25,33 @@ class History extends StatelessWidget {
             child: const Icon(Icons.arrow_back),
           ),
         ),
-        titleTextStyle: Theme.of(context).textTheme.headline6!.copyWith(
-              fontSize: lerpDouble(
-                Theme.of(context).textTheme.headline6!.fontSize,
-                Theme.of(context).textTheme.headline5!.fontSize,
-                0.5,
-              ),
-            ),
         title: const Text(
           'Histórico',
         ),
-        actions: [
-          PopupMenuButton(
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                child: const Text('Limpar'),
-                onTap: controller.logic.clearHistory,
-              ),
-            ],
-            icon: IconTheme.merge(
-              data: const IconThemeData(opacity: 0.87),
-              child: const Icon(Icons.more_vert),
+        trailing: MD3PopupMenuButton(
+          itemBuilder: (context) => [
+            MD3PopupMenuItem(
+              value: null,
+              child: const Text('Limpar'),
+              onTap: controller.logic.clearHistory,
             ),
+          ],
+          icon: IconTheme.merge(
+            data: const IconThemeData(opacity: 0.87),
+            child: const Icon(Icons.more_vert),
           ),
-        ],
+        ),
       ),
     );
   }
 
   Widget _appBarTransition(BuildContext context, PreferredSizeWidget appBar) {
-    final accent = context.materialYouColors.accent2;
-    final bgColor = context.isDark ? accent.shade700 : accent.shade100;
     return SizeTransition(
       sizeFactor: CalcController.of(context).ui.secondLevelScrollAnimation,
       axisAlignment: 1,
       child: SizedBox.fromSize(
         size: appBar.preferredSize,
-        child: Theme(
-            data: Theme.of(context).copyWith(
-              appBarTheme: AppBarTheme(
-                backgroundColor: bgColor,
-                foregroundColor: bgColor.textColor,
-              ),
-            ),
-            child: appBar),
+        child: appBar,
       ),
     );
   }
@@ -159,9 +144,10 @@ class History extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: context.isDark
-          ? context.materialYouColors.neutral1.shade800
-          : context.materialYouColors.neutral1.shade50,
+      color: context.elevation.level1.overlaidColor(
+        context.colorScheme.surface,
+        context.colorScheme.primary,
+      ),
       child: Column(
         children: [
           _appBar(context),

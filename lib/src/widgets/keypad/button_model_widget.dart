@@ -1,6 +1,6 @@
 import 'package:calculator/src/controllers/calc.dart';
 import 'package:flutter/material.dart';
-import 'package:material_you/material_you.dart';
+import 'package:material_widgets/material_widgets.dart';
 
 import '../buttons.dart';
 import 'viewmodel.dart';
@@ -34,41 +34,65 @@ class ButtonModelWidget extends StatelessWidget {
     throw TypeError();
   }
 
-  static Color neutralBg(BuildContext context) => context.isDark
-      ? context.materialYouColors.neutral1[800]!
-      : context.materialYouColors.neutral1[50]!;
+  static Color neutralBg(BuildContext context) {
+    final scheme = context.colorScheme;
+    return context.elevation.level2.overlaidColor(
+      scheme.surface,
+      MD3ElevationLevel.surfaceTint(scheme),
+    );
+  }
 
-  static Color neutralFg(BuildContext context) =>
-      context.isDark ? Colors.white.withOpacity(0.87) : Colors.black87;
+  static Color neutralFg(BuildContext context) => context.colorScheme.onSurface;
 
   @override
   Widget build(BuildContext context) {
     final model = this.model;
-    final theme = context.materialYouColors;
-    Color? fg, bg;
+    final scheme = context.colorScheme;
+    final stateLayerOpacity = context.stateOverlayOpacity;
+    ButtonStyle style;
     if (KeypadDigits.kKeypadAccent1Keys.contains(model)) {
-      bg = theme.accent1.shade100;
-      fg = theme.accent1.shade800;
+      style = FilledButton.styleFrom(
+        backgroundColor: scheme.primary,
+        foregroundColor: scheme.onPrimary,
+        disabledColor: scheme.onSurface,
+        stateLayerOpacityTheme: stateLayerOpacity,
+      );
     } else if (KeypadDigits.kKeypadAccent2Keys.contains(model)) {
-      bg = theme.accent2.shade100;
-      fg = theme.accent2.shade800;
+      style = FilledButton.styleFrom(
+        backgroundColor: scheme.secondary,
+        foregroundColor: scheme.onSecondary,
+        disabledColor: scheme.onSurface,
+        stateLayerOpacityTheme: stateLayerOpacity,
+      );
     } else if (KeypadDigits.kKeypadAccent3Keys.contains(model)) {
-      bg = theme.accent3.shade100;
-      fg = theme.accent3.shade800;
+      style = FilledButton.styleFrom(
+        backgroundColor: scheme.tertiary,
+        foregroundColor: scheme.onTertiary,
+        disabledColor: scheme.onSurface,
+        stateLayerOpacityTheme: stateLayerOpacity,
+      );
     } else if (KeypadDigits.kKeypadNeutralKeys.contains(model)) {
-      bg = neutralBg(context);
-      fg = neutralFg(context);
+      style = FilledButton.styleFrom(
+        backgroundColor: neutralBg(context),
+        foregroundColor: neutralFg(context),
+        disabledColor: scheme.onSurface,
+        stateLayerOpacityTheme: stateLayerOpacity,
+      );
+    } else {
+      style = FilledButton.styleFrom(
+        backgroundColor: scheme.surface,
+        foregroundColor: scheme.onSurface,
+        disabledColor: scheme.onSurface,
+        stateLayerOpacityTheme: stateLayerOpacity,
+      );
     }
 
     return CalcButton(
       onPressed: _onPressed(context),
       child: _child(context),
-      style: ButtonStyle(
-          foregroundColor: MaterialStateProperty.all(
-              fg ?? DefaultTextStyle.of(context).style.color),
-          backgroundColor: MaterialStateProperty.all(bg),
+      style: style.merge(ButtonStyle(
           padding: MaterialStateProperty.all(padding),
-          fixedSize: MaterialStateProperty.all(fixedSize)),
+          fixedSize: MaterialStateProperty.all(fixedSize))),
     );
   }
 
