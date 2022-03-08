@@ -1,13 +1,13 @@
-import 'package:calculator/src/other/initable.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
+import 'package:value_notifier/value_notifier.dart';
 
 import 'calc_ui.dart';
 import 'calc_logic.dart';
 
 /// Provides an glue between the [CalcUiController] and the
 /// [CalcLogicController].
-class CalcController extends InitableDisposable {
+class CalcController extends ControllerBase<CalcController> {
   final CalcUiController ui;
   final CalcLogicController logic;
 
@@ -16,6 +16,8 @@ class CalcController extends InitableDisposable {
   @override
   void init() {
     super.init();
+    addSubcontroller(ui);
+    addSubcontroller(logic);
     ui.textFocusNode.onKeyEvent = _onKeyEvent;
     ui.textEditingController.addListener(_onTextChangedEvent);
     logic.expression.addListener(_onLogicExpressionChanged);
@@ -28,9 +30,8 @@ class CalcController extends InitableDisposable {
     super.dispose();
   }
 
-  static CalcController of(BuildContext context) => context
-      .dependOnInheritedWidgetOfExactType<InheritedCalcController>()!
-      .controller;
+  static CalcController of(BuildContext context) =>
+      InheritedController.of<CalcController>(context).unwrap;
 
   KeyEventResult _onKeyEvent(FocusNode node, KeyEvent event) {
     if (event.logicalKey == LogicalKeyboardKey.enter) {
@@ -42,7 +43,7 @@ class CalcController extends InitableDisposable {
 
   void _onTextChangedEvent() {
     // Forward the ui text to the logic expression
-    logic.expression.value = ui.textEditingController.text;
+    logic.setExpression(ui.textEditingController.text);
   }
 
   void _onLogicExpressionChanged() {
@@ -58,20 +59,4 @@ class CalcController extends InitableDisposable {
       ui.scheduleScrollToEnd();
     }
   }
-}
-
-class InheritedCalcController extends InheritedWidget {
-  final CalcController controller;
-
-  const InheritedCalcController({
-    Key? key,
-    required this.controller,
-    required Widget child,
-  }) : super(
-          key: key,
-          child: child,
-        );
-  @override
-  bool updateShouldNotify(InheritedCalcController oldWidget) =>
-      oldWidget.controller != controller;
 }

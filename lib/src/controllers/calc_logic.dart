@@ -1,9 +1,14 @@
-import 'package:calculator/src/other/initable.dart';
-import 'package:flutter/foundation.dart' show ValueChanged, ValueNotifier;
+import 'dart:collection';
+
+import 'package:flutter/foundation.dart'
+    show ValueChanged, ValueListenable, ValueNotifier;
 import 'package:math_expressions/math_expressions.dart';
+import 'package:value_notifier/value_notifier.dart';
 import 'dart:math' as math;
 import '../model.dart';
 import 'package:hive/hive.dart';
+
+import 'calc.dart';
 
 class _LogicSnapshot {
   final List<HistoryEntry> historyEntries;
@@ -50,7 +55,8 @@ class HistoryEntryAdapter implements TypeAdapter<HistoryEntry> {
   }
 }
 
-class _CalcLogicStorage extends InitableDisposable {
+class _CalcLogicStorage
+    extends SubcontrollerBase<CalcLogicController, _CalcLogicStorage> {
   final ValueChanged<_LogicSnapshot> onLoad;
   _CalcLogicStorage(this.onLoad);
 
@@ -89,22 +95,34 @@ class _CalcLogicStorage extends InitableDisposable {
 }
 
 /// The logical part of the Calculator
-class CalcLogicController extends InitableDisposable {
-  late final ValueNotifier<bool> isDeg = ValueNotifier(false)
+class CalcLogicController
+    extends SubcontrollerBase<CalcController, CalcLogicController> {
+  late final ValueNotifier<bool> _isDeg = ValueNotifier(false)
     ..addListener(_onStateUpdate);
-  late final ValueNotifier<bool> isInverted = ValueNotifier(false)
+  late final ValueNotifier<bool> _isInverted = ValueNotifier(false)
     ..addListener(_onStateUpdate);
-  late final ValueNotifier<List<HistoryEntry>> history = ValueNotifier([])
+  late final ValueNotifier<List<HistoryEntry>> _history = ValueNotifier([])
     ..addListener(_onStateUpdate);
-  late final ValueNotifier<String> expression = ValueNotifier('')
+  late final ValueNotifier<String> _expression = ValueNotifier('')
     ..addListener(_onExpressionChanged)
     ..addListener(_onStateUpdate);
-  final ValueNotifier<String> expressionResult = ValueNotifier('');
-  late final _CalcLogicStorage storage;
+  final ValueNotifier<String> _expressionResult = ValueNotifier('');
+  late final _CalcLogicStorage _storage;
 
+  ValueListenable<bool> get isDeg => _isDeg.view();
+  ValueListenable<bool> get isInverted => _isInverted.view();
+  ValueListenable<UnmodifiableListView<HistoryEntry>> get history =>
+      _history.view().map((e) => UnmodifiableListView(e));
+  ValueListenable<String> get expression => _expression.view();
+  ValueListenable<String> get expressionResult => _expressionResult.view();
+
+  late final setExpression = _expression.setter;
+
+  @override
   void init() {
     super.init();
-    storage = _CalcLogicStorage(_onStorageLoad);
+    _storage = addSubcontroller(
+        ControllerBase.create(() => _CalcLogicStorage(_onStorageLoad)));
   }
 
   bool _isLoadingStorage = false;
@@ -112,7 +130,7 @@ class CalcLogicController extends InitableDisposable {
     if (_isLoadingStorage) {
       return;
     }
-    storage.store(_LogicSnapshot(
+    _storage.store(_LogicSnapshot(
       history.value,
       expression.value,
       isDeg.value,
@@ -123,27 +141,29 @@ class CalcLogicController extends InitableDisposable {
   void _onStorageLoad(_LogicSnapshot snap) {
     _isLoadingStorage = true;
 
-    history.value = snap.historyEntries;
-    expression.value = snap.currentExpression;
-    isDeg.value = snap.isDeg;
-    isInverted.value = snap.isInverted;
+    _history.value = snap.historyEntries;
+    _expression.value = snap.currentExpression;
+    _isDeg.value = snap.isDeg;
+    _isInverted.value = snap.isInverted;
 
     _isLoadingStorage = false;
   }
 
   @override
   void dispose() {
-    isDeg.dispose();
-    isInverted.dispose();
-    history.dispose();
-    expression.dispose();
-    expressionResult.dispose();
-    storage.dispose();
+    IDisposable.disposeAll([
+      _isDeg,
+      _isInverted,
+      _history,
+      _expression,
+      _expressionResult,
+      _storage,
+    ]);
     super.dispose();
   }
 
   void insertExpression(String expression) {
-    expressionResult.value += expression;
+    _expressionResult.value += expression;
   }
 
   void onEquals() {
@@ -157,8 +177,8 @@ class CalcLogicController extends InitableDisposable {
 
     final newHistory = history.value.toList()
       ..add(HistoryEntry(expression.value, result));
-    history.value = newHistory;
-    expression.value = result;
+    _history.value = newHistory;
+    _expression.value = result;
   }
 
   final _parser = Parser();
@@ -208,7 +228,7 @@ class CalcLogicController extends InitableDisposable {
   void _onExpressionChanged() {
     final content = expression.value;
     if (content.isEmpty) {
-      expressionResult.value = '';
+      _expressionResult.value = '';
       return;
     }
     void showLastOrError() {
@@ -219,18 +239,18 @@ class CalcLogicController extends InitableDisposable {
       if ((content.length - (lastString!.length + 1)).abs() == 1) {
         // Do nothing and keep the last result
       } else {
-        expressionResult.value = 'ERRO';
+        _expressionResult.value = 'ERRO';
       }
     }
 
     try {
       final exp = _parser.parse(content.replaceAll(',', '.'));
       if (exp is Literal) {
-        expressionResult.value = '';
+        _expressionResult.value = '';
       } else {
         final result = exp.evaluate(
             EvaluationType.REAL, isDeg.value ? _degContext : _radContext);
-        expressionResult.value = _resultToString(result);
+        _expressionResult.value = _resultToString(result);
       }
     } on ArgumentError {
       showLastOrError();
@@ -243,7 +263,7 @@ class CalcLogicController extends InitableDisposable {
     }
   }
 
-  void clearHistory() => history.value = [];
+  void clearHistory() => _history.value = [];
 
   void onDigit(int digit) {
     assert(digit >= 0 && digit <= 9);
@@ -251,7 +271,7 @@ class CalcLogicController extends InitableDisposable {
   }
 
   void onClear() {
-    expression.value = '';
+    _expression.value = '';
   }
 
   void _addOp(String op) {
@@ -282,7 +302,7 @@ class CalcLogicController extends InitableDisposable {
   }
 
   void _add(String s) {
-    expression.value += s;
+    _expression.value += s;
   }
 
   void onDel() {
@@ -290,7 +310,7 @@ class CalcLogicController extends InitableDisposable {
     if (contents.isEmpty) {
       return;
     }
-    expression.value = contents.substring(0, contents.length - 1);
+    _expression.value = contents.substring(0, contents.length - 1);
   }
 
   void onSpecial(SpecialKind kind) {
@@ -338,10 +358,10 @@ class CalcLogicController extends InitableDisposable {
         _add('!');
         break;
       case SpecialKind.degRad:
-        isDeg.value = !isDeg.value;
+        _isDeg.value = !isDeg.value;
         break;
       case SpecialKind.inv:
-        isInverted.value = !isInverted.value;
+        _isInverted.value = !isInverted.value;
         break;
       case SpecialKind.e:
         _add('e');

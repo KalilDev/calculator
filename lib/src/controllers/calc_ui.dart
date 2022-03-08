@@ -1,4 +1,4 @@
-import 'package:calculator/src/other/initable.dart';
+import 'package:calculator/src/controllers/calc.dart';
 import 'package:flutter/material.dart'
     show
         Animation,
@@ -7,8 +7,10 @@ import 'package:flutter/material.dart'
         ScrollController,
         TextEditingController,
         WidgetsBinding;
+import 'package:value_notifier/value_notifier.dart';
 
-class CalcUiController extends InitableDisposable {
+class CalcUiController
+    extends SubcontrollerBase<CalcController, CalcUiController> {
   final ScrollController scrollController = ScrollController();
   late final TextEditingController textEditingController =
       TextEditingController();
