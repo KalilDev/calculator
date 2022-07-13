@@ -1,5 +1,6 @@
 import 'package:calculator/src/controllers/calc.dart';
 import 'package:calculator/src/layout.dart';
+import 'package:calculator/src/screens/home_screen/consts.dart';
 import 'package:calculator/src/widgets/buttons.dart';
 import 'package:flutter/material.dart';
 import 'package:material_you/material_you.dart';
@@ -66,8 +67,9 @@ class _KeypadState extends State<Keypad> with SingleTickerProviderStateMixin {
       child: Padding(
         padding: EdgeInsets.symmetric(
           horizontal: layout.margin,
-          vertical:
-              layout.type == CalculatorLayoutType.tiny ? 1.0 : layout.margin,
+          vertical: layout.type == CalculatorLayoutType.tiny
+              ? 1.0
+              : HomeViewConstants.minHeaderBottomPadding,
         ),
         child: Column(
           children: [

@@ -122,8 +122,8 @@ class SnapToEdgesAndPointsPhysics extends ScrollPhysics {
       return null;
     }*/
     if ((target - position.pixels).abs() > _epsilon) {
-      print('Moving to target $target, velocity: $velocity, '
-          'pixels: ${position.pixels}');
+      //print('Moving to target $target, velocity: $velocity, '
+      //    'pixels: ${position.pixels}');
       return ScrollSpringSimulation(spring, position.pixels, target, velocity,
           tolerance: tolerance);
     }

@@ -4,17 +4,16 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:material_widgets/material_widgets.dart';
 
-class _CalcButtonChildWrapper extends StatelessWidget {
+class CalcButtonChildWrapper extends StatelessWidget {
   final Widget child;
-  const _CalcButtonChildWrapper({
+  const CalcButtonChildWrapper({
     Key? key,
     required this.child,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return ConstrainedBox(
-      constraints: const BoxConstraints.expand(),
+    return Center(
       child: FittedBox(
         fit: BoxFit.contain,
         child: child,
@@ -46,7 +45,7 @@ class CalcButton extends FilledButton {
           focusNode: focusNode,
           autofocus: autofocus,
           clipBehavior: clipBehavior,
-          child: wrapChild ? _CalcButtonChildWrapper(child: child) : child,
+          child: wrapChild ? CalcButtonChildWrapper(child: child) : child,
         );
   factory CalcButton.digit(
     String digit, {

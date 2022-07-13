@@ -10,6 +10,7 @@ import 'package:hive/hive.dart';
 import 'package:path_provider/path_provider.dart' as path_provider;
 import 'package:value_notifier/value_notifier.dart';
 import 'src/layout.dart';
+import 'typography/typography.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,6 +35,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MD3Themes(
+        textTheme: MD3ClockTypography.instance.adaptativeTextTheme,
         builder: (context, light, dark) => MaterialApp(
               title: 'Flutter Demo',
               theme: light,

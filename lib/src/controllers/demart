@@ -1,0 +1,74 @@
+double _multiply(num a, double b) => a * b;
+
+class FooBarController extends ControllerBase<FooBarController> {
+  final ValueNotifier<int> _foo;
+  final ValueNotifier<double> _bar;
+  final ActionNotifier _didIncFoo = ActionNotifier();
+
+  FooBarController({
+    int foo = 1,
+    double bar = 1.0,
+  })  : _foo = ValueNotifier(foo),
+        _bar = ValueNotifier(bar);
+
+  ValueListenable<int> get foo => _foo.view();
+  ValueListenable<double> get bar => _bar.view();
+  ValueListenable<double> get fooBar => _multiply.curry >> foo >> bar;
+  ValueListenable<void> get didIncFoo => _didIncFoo.view();
+
+  late final incFoo = _didIncFoo.notify;
+
+  @override
+  void init() {
+    didIncFoo.listen(() => _foo.value++);
+    super.init();
+  }
+
+  @override
+  void dispose() {
+    IDisposable.disposeAll([
+      _foo,
+      _bar,
+      _didIncFoo,
+    ]);
+    super.dispose();
+  }
+}
+
+class FooBarWidget extends ControllerWidget<FooBarController> {
+  const FooBarWidget({
+    Key? key,
+    required ControllerHandle<FooBarController> controller,
+  }) : super(key: key, controller: controller);
+
+  @override
+  Widget build(ControllerContext<FooBarController> context) {
+    final foo = context.useLazy((c) => c.foo);
+    final bar = context.useLazy((c) => c.bar);
+    final fooBar = context.useLazy((c) => c.fooBar);
+    context.useLazyActionHandler(
+      (c) => c.didIncFoo,
+      () => ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Incremented foo'))),
+    );
+    print('Building foobar widget');
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        foo.build(
+          builder: (context, foo, _) => Text('Foo: $foo'),
+        ),
+        bar.build(
+          builder: (context, bar, _) => Text('Bar: $bar'),
+        ),
+        fooBar.build(
+          builder: (context, fooBar, _) => Text('FooBar: $fooBar'),
+        ),
+        FilledTonalButton(
+          onPressed: controller.incFoo,
+          child: const Text('Increment foo'),
+        ),
+      ],
+    );
+  }
+}

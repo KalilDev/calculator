@@ -118,13 +118,13 @@ abstract class KeypadDigits {
     SpecialKind.ln,
     SpecialKind.powE,
     Text('ln'),
-    Text('eⁿ'),
+    Text('eˣ'),
   );
   static const $log = InversibleSpecial(
     SpecialKind.log,
     SpecialKind.pow10,
     Text('log'),
-    Text('10ⁿ'),
+    Text('10ˣ'),
   );
 
   /// Digits
@@ -142,29 +142,30 @@ abstract class KeypadDigits {
   /// Keypad additional keys
   static const $div = Special(SpecialKind.div, Text('÷'));
   static const $mod = Special(SpecialKind.mod, Text('%'));
-  static const $parens = Special(SpecialKind.parens, Text('()'));
+  static const $parens = Special(
+      SpecialKind.parens,
+      Text(
+        '( )',
+        style: TextStyle(letterSpacing: -0.7),
+      ));
   static const $ac = Special(
       SpecialKind.ac,
       Padding(
         padding: EdgeInsets.all(1.0),
-        child: Text('AC'),
+        child: Text(
+          'AC',
+          style: TextStyle(letterSpacing: -0.2),
+        ),
       ));
   static const $equals = Special(SpecialKind.equals, Text('='));
-  static const $del = Special(
-      SpecialKind.del,
-      Padding(
-        padding: EdgeInsets.all(4.0),
-        child: Icon(Icons.backspace_outlined),
-      ));
+  static const $del = Special(SpecialKind.del, Text('⌫'));
   static const $comma = Special(SpecialKind.comma, Text(','));
   static const $plus = Special(SpecialKind.plus, Text('+'));
-  static const $minus = Special(SpecialKind.minus, Text('-'));
+  static const $minus = Special(SpecialKind.minus, Text('−'));
   static const $mul = Special(
-      SpecialKind.mul,
-      Padding(
-        padding: EdgeInsets.all(4.0),
-        child: Icon(Icons.close),
-      ));
+    SpecialKind.mul,
+    Text('×'),
+  );
 }
 
 class _DegRad extends StatelessWidget {

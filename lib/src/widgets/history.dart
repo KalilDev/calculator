@@ -16,7 +16,7 @@ class History extends StatelessWidget {
     final controller = CalcController.of(context);
     return _appBarTransition(
       context,
-      MD3CenterAlignedAppBar(
+      MD3SmallAppBar(
         isElevated: true,
         leading: IconButton(
           onPressed: controller.ui.scrollBack,
@@ -28,19 +28,21 @@ class History extends StatelessWidget {
         title: const Text(
           'Histórico',
         ),
-        trailing: MD3PopupMenuButton(
-          itemBuilder: (context) => [
-            MD3PopupMenuItem(
-              value: null,
-              child: const Text('Limpar'),
-              onTap: controller.logic.clearHistory,
+        actions: [
+          MD3PopupMenuButton(
+            itemBuilder: (context) => [
+              MD3PopupMenuItem(
+                value: null,
+                child: const Text('Limpar'),
+                onTap: controller.logic.clearHistory,
+              ),
+            ],
+            icon: IconTheme.merge(
+              data: const IconThemeData(opacity: 0.87),
+              child: const Icon(Icons.more_vert),
             ),
-          ],
-          icon: IconTheme.merge(
-            data: const IconThemeData(opacity: 0.87),
-            child: const Icon(Icons.more_vert),
           ),
-        ),
+        ],
       ),
     );
   }

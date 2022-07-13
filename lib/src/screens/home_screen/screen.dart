@@ -10,6 +10,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:value_notifier/value_notifier.dart';
 
+import 'consts.dart';
+
 class MainScreen extends StatefulWidget {
   const MainScreen({Key? key}) : super(key: key);
 
@@ -52,37 +54,30 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
     final p = scrollController.position;
     final viewHeight = p.viewportDimension;
 
-    void updateFirst() {
-      final maxHeight = viewHeight * 2 / 3;
-      final minHeight = viewHeight / 2;
-      final deltaHeight = maxHeight - minHeight;
+    final firstMaxHeight = HomeViewConstants.maxKeypadHeightFrac * viewHeight;
+    final minHeight = HomeViewConstants.minKeypadHeightFrac * viewHeight;
+    final firstDeltaHeight = HomeViewConstants.keypadDeltaFrac * viewHeight;
 
-      final fracExt = p.extentBefore / deltaHeight;
+    {
+      // Update the first level animation
+      final fracExt = p.extentBefore / firstDeltaHeight;
       firstLevelController.value = fracExt.clamp(0.0, 1.0);
     }
 
-    void updateSecond() {
-      final firstMaxHeight = viewHeight * 2 / 3;
-      final firstMinHeight = viewHeight / 2;
-      final firstDeltaHeight = firstMaxHeight - firstMinHeight;
-
+    {
+      // Update the second level animation
       final maxHeight = viewHeight;
-      final minHeight = viewHeight / 2;
       final deltaHeight = maxHeight - minHeight;
 
       final fracExt = (p.extentBefore - firstDeltaHeight) / deltaHeight;
       secondLevelController.value = fracExt.clamp(0.0, 1.0);
     }
-
-    updateFirst();
-    updateSecond();
   }
 
   Widget _keypadBuilder(BuildContext context, SliverConstraints constraints) {
     final viewHeight = constraints.viewportMainAxisExtent;
-    final maxHeight = viewHeight * 2 / 3;
-    final minHeight = viewHeight / 2;
-    final deltaHeight = maxHeight - minHeight;
+    final maxHeight = HomeViewConstants.maxKeypadHeightFrac * viewHeight;
+    final deltaHeight = HomeViewConstants.keypadDeltaFrac * viewHeight;
 
     return SliverToBoxAdapter(
       child: SizedBox(
@@ -99,9 +94,10 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
 
   Widget _headerBuilder(BuildContext context, SliverConstraints constraints) {
     final viewHeight = constraints.viewportMainAxisExtent;
-    final bottomPadding = 36 * secondLevelController.value;
+    final bottomPadding = HomeViewConstants.headerBottomPaddingDelta *
+        secondLevelController.value;
 
-    final height = viewHeight * 1 / 3;
+    final height = viewHeight * HomeViewConstants.headerHeightFrac;
     return SliverToBoxAdapter(
       child: Padding(
         padding: EdgeInsets.only(
@@ -117,14 +113,16 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
 
   Widget _historyBuilder(BuildContext context, SliverConstraints constraints) {
     final viewHeight = constraints.viewportMainAxisExtent;
-    final fullHeight = viewHeight * 2 / 3 - 36;
+    final fullHeight = HomeViewConstants.maxKeypadHeightFrac * viewHeight -
+        HomeViewConstants.headerBottomPaddingDelta;
     final height = constraints.remainingPaintExtent;
 
     return SliverToBoxAdapter(
       child: SizedBox(
         height: fullHeight,
         child: Padding(
-          padding: EdgeInsets.only(top: fullHeight - height),
+          padding: EdgeInsets.only(
+              top: (fullHeight - height).clamp(0.0, double.infinity)),
           child: const History(),
         ),
       ),
@@ -139,9 +137,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     final height = MediaQuery.of(context).size.height;
 
-    final maxHeight = height * 2 / 3;
-    final minHeight = height / 2;
-    final deltaHeight = maxHeight - minHeight;
+    final deltaHeight = height * HomeViewConstants.keypadDeltaFrac;
 
     // This is should not happen, an new instance of the scroll physics should
     // be created in the build method, with the correct points, but when this

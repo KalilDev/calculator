@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:calculator/src/controllers/calc.dart';
 import 'package:flutter/material.dart';
 import 'package:material_widgets/material_widgets.dart';
@@ -87,12 +89,29 @@ class ButtonModelWidget extends StatelessWidget {
       );
     }
 
-    return CalcButton(
+    final textStyle = context.textTheme.displayMedium;
+    final child = CalcButton(
       onPressed: _onPressed(context),
-      child: _child(context),
-      style: style.merge(ButtonStyle(
-          padding: MaterialStateProperty.all(padding),
-          fixedSize: MaterialStateProperty.all(fixedSize))),
+      child: IconTheme.merge(
+        data: IconThemeData(
+          size: textStyle.fontSize! * 0.8,
+        ),
+        child: _child(context),
+      ),
+      style: style.copyWith(
+        padding: MaterialStateProperty.all(padding),
+        fixedSize: MaterialStateProperty.all(fixedSize),
+        textStyle: MaterialStateProperty.all(textStyle),
+      ),
+    );
+    if (fixedSize == null) {
+      return SizedBox.expand(
+        child: child,
+      );
+    }
+    return SizedBox.fromSize(
+      size: fixedSize,
+      child: child,
     );
   }
 

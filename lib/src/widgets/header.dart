@@ -43,7 +43,7 @@ class Header extends StatelessWidget {
     return Material(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadiusDirectional.vertical(
-          bottom: Radius.circular(margin),
+          bottom: Radius.circular(28),
         ),
       ),
       color: context.elevation.level2.overlaidColor(
